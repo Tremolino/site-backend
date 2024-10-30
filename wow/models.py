@@ -13,9 +13,10 @@ def create_connection():
 
 
 class User:
-    def __init__(self, username: str, password: str):
+    def __init__(self, username: str, password: str, email: str):
         self.username = username
         self.password = password
+        self.email = email
 
 
 class Yacht:
@@ -39,6 +40,7 @@ def init_db():
         conn.execute('''CREATE TABLE IF NOT EXISTS users (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             username TEXT UNIQUE NOT NULL,
+                            email TEXT UNIQUE NOT NULL,
                             password TEXT NOT NULL)''')
         conn.execute('''CREATE TABLE IF NOT EXISTS yachts (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,

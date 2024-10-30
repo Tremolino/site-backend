@@ -64,6 +64,7 @@ yac.add_middleware(
 class User(BaseModel):
     username: str
     password: str
+    email: str
 
 
 class Yacht(BaseModel):
@@ -82,26 +83,30 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class UserLogin(BaseModel):
+    email: str
+    password: str
 
-@yac.post("/register/", tags=["users"])
+
+@yac.post("/reg/", tags=["users"])
 async def register(user: User):
     try:
         hashed_password = get_password_hash(user.password)
-        add_user(user.username, hashed_password)
+        add_user(user.username, hashed_password, user.email)
         return {"message": "User registered successfully"}
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Username already exists")
+        raise HTTPException(status_code=400, detail="Username or email already exists")
 
 
 @yac.post("/token", response_model=Token, tags=["users"])
-async def login(user: User):
-    db_user = get_user(user.username)
+async def login(user: UserLogin):
+    db_user = get_user(email=user.email)
 
     if not db_user or not verify_password(user.password, db_user[2]):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
 
     access_token_expires = datetime.timedelta(minutes=30)
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    access_token = create_access_token(data={"sub": db_user[0]}, expires_delta=access_token_expires)
 
     return {"access_token": access_token, "token_type": "bearer"}
 
