@@ -16,14 +16,14 @@ def setup_database():
 
 @pytest.fixture(scope="module")
 def create_user():
-    response = client.post("/reg/", json={"username": "testuser", "password": "testpassword"})
+    response = client.post("/reg/", json={"username": "testuser", "password": "testpassword", "realname": "Test User"})
     assert response.status_code == 200
-    return "testuser", "testpassword"
+    return "testuser", "testpassword", "Test User"
 
 def test_register(create_user):
     username, password = create_user
-    response = client.post("/reg/", json={"username": username, "password": password})
-    assert response.status_code == 400  # Пользователь уже существует
+    response = client.post("/reg/", json={"username": username, "password": password, "realname": "Test User"} )
+    assert response.status_code == 400
 
 def test_login(create_user):
     username, password = create_user
