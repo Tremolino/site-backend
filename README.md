@@ -26,8 +26,8 @@
 
 1. **Склонируйте репозиторий**:
    ```bash
-   git clone https://github.com/starsden/YachtAPI.git
-   cd YachtAPI
+   git clone https://github.com/starsden/site-backend.git
+   cd site-backend
    ```
 
 2. **Создайте виртуальное окружение**:
@@ -44,6 +44,7 @@
 
 4. **Запустите сервер**:
    ```bash
+   cd app
    uvicorn main:app --host 127.0.0.1 --port 8000
    ```
 
