@@ -1,12 +1,20 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from models import User, SessionLocal, init_db, Yacht
-from typing import List
+from fastapi.responses import JSONResponse, HTMLResponse
+from classes import Booking as BookingSchema
+from sqlalchemy.exc import IntegrityError
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import FastAPI, Depends, HTTPException, status, Header
+from models import User, SessionLocal, init_db, Yacht, Booking
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
 from datetime import timedelta
 import security as security
+from typing import List
 
-from classes import UserCreate, UserLogin, Token, Yachts
+from classes import UserCreate, UserLogin, Token, Yachts, BookingSchema
+
+
+templates = Jinja2Templates(directory="./templates")
+
 
 tags_metadata = [
     {
@@ -21,16 +29,22 @@ tags_metadata = [
         "name": "bookings",
         "description": "Управление бронированием",
     },
+    {
+        "name": "dev",
+        "description": "methods for developers. dont use in production",
+    }
 ]
 
 yac = FastAPI(
     title="Booking Yacht API",
-    description="Tremolino and Banderilya API",
+    description="Tremolino site API",
     version="0.0.1",
     openapi_tags=tags_metadata,
     redoc_url=None,
     docs_url="/papers",
 )
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def get_db():
     db = SessionLocal()
@@ -38,6 +52,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 init_db()
 @yac.post("/reg", summary="Registration", tags=["users"])
 async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -49,11 +64,15 @@ async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     if em:
         raise HTTPException(status_code=400, detail="there is already such an email! try another email ( ͡° ͜ʖ ͡°)")
     if pn:
-        raise HTTPException(status_code=400, detail="there is there is already such an email! try another phone number ( ͡° ͜ʖ ͡°")
+        raise HTTPException(status_code=400, detail="there is there is already such a phone number! try another phone number ( ͡° ͜ʖ ͡°) ")
 
     hashed_password = security.hash_pass(user_data.password)
 
-    new_user = User(username=user_data.username, phone_num=user_data.phone_num, email=user_data.email, hashed_password=hashed_password, realname=user_data.realname)
+    new_user = User(username=user_data.username,
+                    phone_num=user_data.phone_num,
+                    email=user_data.email,
+                    hashed_password=hashed_password,
+                    realname=user_data.realname)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -79,7 +98,77 @@ async def login(login_data: UserLogin, db: Session = Depends(get_db)):
         "realname": user.realname
     }
 
-@yac.get("/yachts", response_model=List[Yachts], tags=["yachts"])
+
+
+@yac.post("/book", tags=["bookings"])
+async def create_booking(booking_data: BookingSchema, db: Session = Depends(get_db), token: str = Header(None)):
+
+    if not token:
+        raise HTTPException(status_code=401, detail="missing access token")
+
+    username = security.verify_token(token)
+
+    yacht = db.query(Yacht).filter(Yacht.id == booking_data.yacht_id).first()
+    if not yacht:
+        raise HTTPException(
+            status_code=404,
+            detail=f"yacht with ID {booking_data.yacht_id} not found"
+        )
+
+    if not yacht.available:
+        raise HTTPException(
+            status_code=400,
+            detail="the selected yacht is not available for booking"
+        )
+
+    booking_price = yacht.price * booking_data.duration
+
+    new_booking = Booking(
+        event_date=booking_data.event_date,
+        event_time=booking_data.event_time,
+        yacht_id=booking_data.yacht_id,
+        instructor_name=booking_data.instructor_name,
+        username=username,
+        contacts=booking_data.contacts,
+        guests=booking_data.guests,
+        duration=booking_data.duration,
+        price=int(booking_price),
+        comments=booking_data.comments
+    )
+
+    try:
+        db.add(new_booking)
+        db.commit()
+        db.refresh(new_booking)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="there was an error with your booking request. please check your sending data."
+        )
+
+    return JSONResponse(
+        status_code=201,
+        content={
+            "message": "booking created",
+            "booking_id": new_booking.id,
+            "total_price": booking_price
+        }
+    )
+
+
+@yac.get("/yachts", response_model=List[Yachts], tags=["dev"], summary="list of all yachts") #for developers, delete in prod
 async def get_yachts(db: Session = Depends(get_db)):
     yachts = db.query(Yacht).all()
     return yachts
+
+@yac.get("/bookings", response_model=List[BookingSchema], tags=["dev"], summary="list of all bookings") #for developers, delete in prod
+async def get_bookings(db: Session = Depends(get_db)):
+    bookings = db.query(Booking).all()
+    return bookings
+
+
+@yac.get("/bookings/{username}", response_model=List[BookingSchema], tags=["dev"], summary="list of user bookings") #for developers, delete in prod
+async def get_user_bookings(username: str, db: Session = Depends(get_db)):
+    bookings = db.query(Booking).filter(Booking.username == username).all()
+    return bookings

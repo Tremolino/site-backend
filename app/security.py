@@ -6,7 +6,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = "o7wELp+wMruYwOFbQq7HZNCRrA9bW7t3BNLrkpiiZTASyvBKLVLvAX04vr6VsOri"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 52650000
+ACCESS_TOKEN_EXPIRE_MINUTES = 52650000 #TODO change in prod to 100min
 
 
 def hash_pass(password: str) -> str:

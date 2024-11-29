@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, JSON, Boolean, Date, Time
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -37,13 +37,14 @@ class Booking(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     date_of_booking = Column(DateTime, index=True, default=datetime.utcnow)
-    event_date = Column(DateTime, index=True)
-    event_time = Column(DateTime, index=True)
+    event_date = Column(Date, index=True)
+    event_time = Column(Time, index=True)
     yacht_id = Column(Integer, index=True)
     instructor_name = Column(String, index=True)
     username = Column(String, index=True)
     contacts = Column(String, index=True)
     guests = Column(Integer)
+    duration = Column(Integer, index=True)
     price = Column(Integer)
     comments = Column(String, index=True, nullable=True)
 
