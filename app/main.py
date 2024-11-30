@@ -1,20 +1,17 @@
-from fastapi.responses import JSONResponse, HTMLResponse
-from classes import Booking as BookingSchema
-from sqlalchemy.exc import IntegrityError
+#TODO add ajax requests for price
+
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi import FastAPI, Depends, HTTPException, status, Header
+from fastapi import FastAPI, Depends, HTTPException, status, Header, Form
 from models import User, SessionLocal, init_db, Yacht, Booking
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from datetime import timedelta
 import security as security
 from typing import List
 
-from classes import UserCreate, UserLogin, Token, Yachts, BookingSchema
-
-
-templates = Jinja2Templates(directory="./templates")
-
+from classes import UserCreate, UserLogin, Token, Yachts, BookingSchema, UserSchema
 
 tags_metadata = [
     {
@@ -42,9 +39,9 @@ yac = FastAPI(
     openapi_tags=tags_metadata,
     redoc_url=None,
     docs_url="/papers",
+
 )
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def get_db():
     db = SessionLocal()
@@ -97,6 +94,30 @@ async def login(login_data: UserLogin, db: Session = Depends(get_db)):
         "token_type": "bearer",
         "realname": user.realname
     }
+
+@yac.get("/profile", response_model=UserSchema, tags=["users"])
+
+async def get_user(db: Session = Depends(get_db), token: str = Header(None)):
+    if not token:
+        raise HTTPException(status_code=401, detail="missing access token")
+
+    username = security.verify_token(token)
+    user = db.query(User).filter(User.username == username).first()
+
+    return user
+
+@yac.delete("/del", tags=["users"])
+async def delete_account(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
+
+    if not user:
+        raise HTTPException(status_code=418, detail="we don't have any here! try registration or check /docs")
+
+    if not security.verify_password(password, user.hashed_password):
+        raise HTTPException(status_code=403, detail="password is wrong!")
+    db.delete(user)
+    db.commit()
+    return {"status_code": 200, "detail": "User deleted success (✖╭╮✖)"}
 
 
 
@@ -156,6 +177,37 @@ async def create_booking(booking_data: BookingSchema, db: Session = Depends(get_
         }
     )
 
+@yac.delete("/cancel", tags=["bookings"])
+async def cancel_booking(booking_id: int, db: Session = Depends(get_db), token: str = Header(None)):
+    if not token:
+        raise HTTPException(status_code=401, detail="access token not found")
+
+    username = security.verify_token(token)
+
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if not booking:
+        raise HTTPException(
+            status_code=404,
+            detail="booking not found"
+        )
+
+    db.delete(booking)
+    db.commit()
+    return {"status_code": 200,
+            "booking_id": booking_id,
+            "username": username,
+            "detail": "booking deleted success (✖╭╮✖)"}
+
+
+
+
+
+
+"""
+developer methods
+"""
+
+
 
 @yac.get("/yachts", response_model=List[Yachts], tags=["dev"], summary="list of all yachts") #for developers, delete in prod
 async def get_yachts(db: Session = Depends(get_db)):
@@ -172,3 +224,16 @@ async def get_bookings(db: Session = Depends(get_db)):
 async def get_user_bookings(username: str, db: Session = Depends(get_db)):
     bookings = db.query(Booking).filter(Booking.username == username).all()
     return bookings
+
+@yac.put("/yachts/{yacht_id}", tags=["dev"], summary="update available yacht")
+async def update_yacht(yacht_id: int, db: Session = Depends(get_db)):
+    yacht = db.query(Yacht).filter(Yacht.id == yacht_id).first()
+    if not yacht:
+        raise HTTPException(
+            status_code=404,
+            detail=f"yacht with ID {yacht_id} not found"
+        )
+    yacht.available = not yacht.available
+    db.commit()
+    return yacht
+

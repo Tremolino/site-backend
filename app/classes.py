@@ -51,5 +51,17 @@ class BookingSchema(BaseModel):
     duration: int
     comments: Optional[str] = None
 
+class UserSchema(BaseModel):
+    realname: str
+    phone_num: str
+    username: str
+    email: str
+
+
+class CancelBooking(BaseModel):
+    booking_id: int
+
+
+
 class Config:
     orm_mode = True
