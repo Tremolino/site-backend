@@ -1,4 +1,5 @@
 #TODO add ajax requests for price
+#TODO add confirm booking in telegram
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import FastAPI, Depends, HTTPException, status, Header, Form
@@ -167,13 +168,14 @@ async def create_booking(booking_data: BookingSchema, db: Session = Depends(get_
             status_code=400,
             detail="there was an error with your booking request. please check your sending data."
         )
-
+    tg_link = f"https://t.me/tremolino_bot?start=booking_{new_booking.id}"
     return JSONResponse(
         status_code=201,
         content={
             "message": "booking created",
             "booking_id": new_booking.id,
-            "total_price": booking_price
+            "total_price": booking_price,
+            "tg_link": tg_link
         }
     )
 
