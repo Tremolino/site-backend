@@ -3,19 +3,19 @@
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import FastAPI, Depends, HTTPException, status, Header, Form
-from models import User, SessionLocal, init_db, Yacht, Booking
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from datetime import timedelta
-import security as security
 import asyncio
 
-from telegram import main
-from typing import List
 
-from classes import UserCreate, UserLogin, Token, Yachts, BookingSchema, UserSchema
+from app.telegram import main
+from typing import List
+import app.security as security
+from app.models import User, SessionLocal, init_db, Yacht, Booking
+from app.classes import UserCreate, UserLogin, Token, Yachts, BookingSchema, UserSchema
 
 tags_metadata = [
     {
@@ -56,9 +56,9 @@ def get_db():
 
 init_db()
 
-@yac.on_event("startup")
-async def startup():
-    asyncio.create_task(main())
+# @yac.on_event("startup")
+# async def startup():
+#     asyncio.create_task(main())
 
 
 @yac.post("/reg", summary="Registration", tags=["users"])
