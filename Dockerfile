@@ -1,11 +1,11 @@
-FROM python:3.9
+FROM python:3.13-slim
 
-WORKDIR /
+WORKDIR /app
 
-COPY requirements.txt .
+COPY requirements.txt /app/
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY . /app/
 
-CMD ["uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.main:yac","--port", "8080", "--reload"]
