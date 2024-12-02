@@ -5,7 +5,6 @@
 ## Оглавление
 - [Функции](#Функции)
 - [Технологии](#Технологии)
-- [Установка и запуск](#Установка-и-запуск)
 - [Лицензия](LICENCE.md)
 
 ## Функции
@@ -21,33 +20,6 @@
 - **SQLite** — база данных для хранения данных о пользователях, яхтах и бронированиях.
 - **smtplib** — для отправки email-подтверждений.
 - **JWT-токены** — для аутентификации пользователей.
-
-## Установка и запуск
-
-1. **Склонируйте репозиторий**:
-   ```bash
-   git clone https://github.com/starsden/site-backend.git
-   cd site-backend
-   ```
-
-2. **Создайте виртуальное окружение**:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   venv\Scripts\activate     # Windows
-   ```
-
-3. **Установите зависимости**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Запустите сервер**:
-   ```bash
-   cd app
-   uvicorn main:app --host 127.0.0.1 --port 8000
-   ```
-
 
 
 **Все права защищены © Starichenko Denis, 2024.**
