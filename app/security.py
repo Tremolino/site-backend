@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+from app.keys import secret_key
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KEY = "o7wELp+wMruYwOFbQq7HZNCRrA9bW7t3BNLrkpiiZTASyvBKLVLvAX04vr6VsOri"
+SECRET_KEY = secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 52650000 #TODO change in prod to 100min
 

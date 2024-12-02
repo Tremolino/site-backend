@@ -8,14 +8,15 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from app.models import Booking
+from app.keys import tg_token
 
 
 DATABASE_URL = "sqlite:///./tremolino.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-token = "8044522409:AAH_9abd1U8dfBssy7pNo17l8Ob-Vmq5-JE"
-bot = Bot(token=token)
+
+bot = Bot(token=tg_token)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
