@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from app.models import Booking
 from app.keys import tg_token
 
-
+#TODO Добавить удаление из напоминаний, при удалении бронирования пользователем
 DATABASE_URL = "sqlite:///./tremolino.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -22,7 +22,7 @@ dp = Dispatcher(storage=storage)
 
 reminders = {}
 
-
+debug = True
 
 @dp.message(Command('start'))
 async def start(message: types.Message, command: CommandObject):
@@ -91,6 +91,17 @@ async def main():
     dp['bot'] = bot
     asyncio.create_task(send_reminders())
     await dp.start_polling(bot)
+
+
+@dp.callback_query(command="rl")
+async def reminders_list():
+    if debug == True:
+        await bot.send_message(reminders)
+    else:
+        pass
+
+
+
 
 
 async def startup():

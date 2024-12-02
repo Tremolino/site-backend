@@ -10,8 +10,7 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 import asyncio
 
-
-from app.telegram import main
+# from app.telegram import main
 from typing import List
 import app.security as security
 from app.models import User, SessionLocal, init_db, Yacht, Booking
@@ -47,6 +46,8 @@ yac = FastAPI(
 )
 
 
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -55,6 +56,14 @@ def get_db():
         db.close()
 
 init_db()
+
+
+
+'''
+set "false" in production
+'''
+debug = True
+
 
 # @yac.on_event("startup")
 # async def startup():
@@ -220,23 +229,23 @@ developer methods
 
 
 
-@yac.get("/yachts", response_model=List[Yachts], tags=["dev"], summary="list of all yachts") #for developers, delete in prod
+@yac.get("/yachts", response_model=List[Yachts], tags=["dev"], summary="list of all yachts", deprecated=not debug) #for developers, delete in prod
 async def get_yachts(db: Session = Depends(get_db)):
     yachts = db.query(Yacht).all()
     return yachts
 
-@yac.get("/bookings", response_model=List[BookingSchema], tags=["dev"], summary="list of all bookings") #for developers, delete in prod
+@yac.get("/bookings", response_model=List[BookingSchema], tags=["dev"], summary="list of all bookings", deprecated=not debug) #for developers, delete in prod
 async def get_bookings(db: Session = Depends(get_db)):
     bookings = db.query(Booking).all()
     return bookings
 
 
-@yac.get("/bookings/{username}", response_model=List[BookingSchema], tags=["dev"], summary="list of user bookings") #for developers, delete in prod
+@yac.get("/bookings/{username}", response_model=List[BookingSchema], tags=["dev"], summary="list of user bookings", deprecated=not debug) #for developers, delete in prod
 async def get_user_bookings(username: str, db: Session = Depends(get_db)):
     bookings = db.query(Booking).filter(Booking.username == username).all()
     return bookings
 
-@yac.put("/yachts/{yacht_id}", tags=["dev"], summary="update available yacht")
+@yac.put("/yachts/{yacht_id}", tags=["dev"], summary="update available yacht", deprecated=not debug)
 async def update_yacht(yacht_id: int, db: Session = Depends(get_db)):
     yacht = db.query(Yacht).filter(Yacht.id == yacht_id).first()
     if not yacht:
