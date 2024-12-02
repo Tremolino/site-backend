@@ -168,7 +168,7 @@ async def create_booking(booking_data: BookingSchema, db: Session = Depends(get_
             status_code=400,
             detail="there was an error with your booking request. please check your sending data."
         )
-    tg_link = f"https://t.me/tremolino_bot?start=booking_{new_booking.id}"
+    tg_link = f"https://t.me/testremolino_bot?start=booking_{new_booking.id}"
     return JSONResponse(
         status_code=201,
         content={
