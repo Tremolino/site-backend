@@ -20,7 +20,7 @@ dp = Dispatcher(storage=storage)
 
 reminders = {}
 
-print("bot started! prog main")
+
 
 @dp.message(Command('start'))
 async def start(message: types.Message, command: CommandObject):
@@ -50,7 +50,7 @@ async def start(message: types.Message, command: CommandObject):
         else:
             await message.reply("Ошибка: такое бронирование не найдено( \nПроверьте пожалуйста ссылку.")
     else:
-        await message.reply("Добро пожаловать! Используйте /start с параметром бронирования.")
+        await message.reply("Добро пожаловать! \nДля использования бота, пожалуйста перейдите по ссылке, которуя вы получили при бронировании яхты на нашем сайте.")
 @dp.callback_query(lambda c: c.data and c.data.startswith("reminder_"))
 async def set_reminder(callback_query: types.CallbackQuery):
     booking_id = int(callback_query.data.split("_")[1])
@@ -91,5 +91,5 @@ async def main():
     await dp.start_polling(bot)
 
 
-if __name__ == '__main__':
+async def startup():
     asyncio.run(main())

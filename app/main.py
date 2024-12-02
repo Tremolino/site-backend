@@ -10,6 +10,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from datetime import timedelta
 import security as security
+import asyncio
+
+from telegram import main
 from typing import List
 
 from classes import UserCreate, UserLogin, Token, Yachts, BookingSchema, UserSchema
@@ -52,6 +55,12 @@ def get_db():
         db.close()
 
 init_db()
+
+@yac.on_event("startup")
+async def startup():
+    asyncio.create_task(main())
+
+
 @yac.post("/reg", summary="Registration", tags=["users"])
 async def signup(user_data: UserCreate, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == user_data.username).first()
